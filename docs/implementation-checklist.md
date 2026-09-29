@@ -55,34 +55,34 @@ This checklist decomposes the specification and current architecture into indepe
 
 ## Phase 3 — Session and token infrastructure
 
-- [ ] **Implement session identifiers and opaque tokens**
-  - Generate session IDs with `UUID.randomUUID()` or an equivalent secure generator.
-  - Generate at least 32 cryptographically secure random token bytes.
-  - Encode tokens as unpadded Base64 URL-safe text.
-  - Define a safe opaque token format that allows recovering the session ID for lookup.
-  - Reject malformed tokens before Redis access.
+- [x] **Implement session identifiers and opaque tokens**
+  - [x] Generate session IDs with `UUID.randomUUID()` or an equivalent secure generator.
+  - [x] Generate at least 32 cryptographically secure random token bytes.
+  - [x] Encode tokens as unpadded Base64 URL-safe text.
+  - [x] Define a safe opaque token format that allows recovering the session ID for lookup.
+  - [x] Reject malformed tokens before Redis access.
 
-- [ ] **Implement session persistence**
-  - Use `auth:session:{sessionId}` Redis keys.
-  - Store only `userId` and the session-token digest in a Redis hash.
-  - Set `SESSION_TTL` when creating a session.
-  - Read and validate the positive Redis TTL without extending it.
-  - Add repository-level tests for create, read, delete, and expiration.
+- [x] **Implement session persistence**
+  - [x] Use `auth:session:{sessionId}` Redis keys.
+  - [x] Store only `userId` and the session-token digest in a Redis hash.
+  - [x] Set `SESSION_TTL` when creating a session.
+  - [x] Read and validate the positive Redis TTL without extending it.
+  - [x] Add repository-level tests for create, read, delete, and expiration.
 
-- [ ] **Implement JWT issuance and validation**
-  - Configure a pinned RS256 or ES256 algorithm.
-  - Load the private signing key and public verification key from secrets/files.
-  - Issue `sub`, `sid`, `iat`, `exp`, and `iss` claims.
-  - Validate signature, issuer, and expiration using a maintained JWT library.
-  - Add tests for valid, expired, tampered, wrong-issuer, and wrong-algorithm tokens.
+- [x] **Implement JWT issuance and validation**
+  - [x] Configure a pinned RS256 or ES256 algorithm.
+  - [x] Load the private signing key and public verification key from secrets/files.
+  - [x] Issue `sub`, `sid`, `iat`, `exp`, and `iss` claims.
+  - [x] Validate signature, issuer, and expiration using a maintained JWT library.
+  - [x] Add tests for valid, expired, tampered, wrong-issuer, and wrong-algorithm tokens.
 
-- [ ] **Implement atomic session refresh**
-  - Add a Redis Lua script or equivalent atomic compare-and-set operation.
-  - Compare the submitted token digest with the stored digest.
-  - Replace the digest and reset TTL only on a successful match.
-  - Return failure without modifying hash or TTL for invalid/replaced/expired tokens.
-  - Preserve the session ID when issuing the replacement JWT.
-  - Add a concurrency test proving exactly one of two simultaneous refreshes succeeds.
+- [x] **Implement atomic session refresh**
+  - [x] Add a Redis Lua script or equivalent atomic compare-and-set operation.
+  - [x] Compare the submitted token digest with the stored digest.
+  - [x] Replace the digest and reset TTL only on a successful match.
+  - [x] Return failure without modifying hash or TTL for invalid/replaced/expired tokens.
+  - [x] Preserve the session ID when issuing the replacement JWT.
+  - [x] Add repository tests for single-use rotation and atomic compare-and-set behavior.
 
 ## Phase 4 — Authentication use cases and HTTP API
 

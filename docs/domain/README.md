@@ -5,4 +5,4 @@ This directory contains English documentation for domain models and domain invar
 Planned documents:
 
 - `user.md` — user identity, normalized email, and password-hash rules.
-- `session.md` — session identity, token rotation, lifecycle, and TTL rules.
+- `session.md` — session identity, opaque token format, token rotation, lifecycle, and TTL rules.
