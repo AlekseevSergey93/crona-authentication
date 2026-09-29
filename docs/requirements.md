@@ -8,6 +8,7 @@
 - Redis 7.
 - Nimbus JOSE JWT through Spring Security OAuth2 Resource Server or an equivalent maintained library.
 - Argon2id through Spring Security's `PasswordEncoder`.
+- Bouncy Castle runtime support for Argon2id.
 - Liquibase database migrations.
 - Nginx and Docker Compose.
 - Maven and Testcontainers.
@@ -19,6 +20,7 @@
 - Do not apply provider-specific email canonicalization.
 - Do not trim or normalize passwords.
 - Password length: 12 to 128 Unicode code points.
+- Reject email values that do not contain a non-whitespace local part, `@`, and a dotted non-whitespace domain.
 - Session tokens are opaque, non-JWT credentials containing at least 32 cryptographically secure random bytes, encoded as unpadded Base64 URL-safe text.
 - Never persist or log raw session tokens, JWTs, passwords, password hashes, authorization headers, or Redis token hashes.
 - Access-token lifetime defaults to 15 minutes.
@@ -40,6 +42,12 @@ Create a `users` table:
 Create a database-level unique index named `users_email_uq` on normalized `email`. Convert uniqueness violations, including concurrent registration races, to `409 USER_ALREADY_EXISTS`.
 
 Liquibase must apply the initial migration automatically during application startup. Use a versioned root changelog and include changesets for the users table, indexes, and future schema changes. Changesets must be immutable after deployment.
+
+The user domain entity must generate its UUID in the application, normalize and validate email by trimming and lowercasing with `Locale.ROOT`, store only the password hash, and maintain UTC `created_at` and `updated_at` timestamps. Repository lookups must use normalized email values. A violation of `users_email_uq` must map to `409 USER_ALREADY_EXISTS`; unrelated integrity failures must not be reported as duplicate users.
+
+Raw passwords must satisfy the configured 12–128 Unicode code-point policy before hashing. Passwords must not be trimmed or normalized; whitespace is valid password content.
+
+Use a Spring-managed `Argon2PasswordEncoder` for all password hashing and verification. Generate a fresh salt for every hash and persist the complete encoded Argon2id value. Never compare hashes with string equality, and never expose or log raw passwords or password hashes.
 
 ## Redis session requirements
 

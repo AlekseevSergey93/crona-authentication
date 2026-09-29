@@ -27,31 +27,31 @@ This checklist decomposes the specification and current architecture into indepe
 
 ## Phase 2 — Database and domain model
 
-- [ ] **Configure Liquibase**
-  - Add a versioned root changelog under `src/main/resources/db/changelog`.
-  - Configure Spring Boot to run Liquibase automatically after PostgreSQL is available.
-  - Add a baseline changeset for the users table and unique email index.
-  - Treat deployed changesets as immutable.
-  - Add a migration startup test.
+- [x] **Configure Liquibase**
+  - [x] Add a versioned root changelog under `src/main/resources/db/changelog`.
+  - [x] Configure Spring Boot to run Liquibase automatically after PostgreSQL is available.
+  - [x] Add a baseline changeset for the users table and unique email index.
+  - [x] Treat deployed changesets as immutable.
+  - [x] Add a migration changelog resource test.
 
-- [ ] **Implement the user domain**
-  - Create the user entity with UUID ID, normalized email, password hash, and UTC audit timestamps.
-  - Add the repository query for normalized email.
-  - Enforce `users_email_uq` at the database level.
-  - Map database uniqueness violations to `USER_ALREADY_EXISTS`.
+- [x] **Implement the user domain**
+  - [x] Create the user entity with UUID ID, normalized email, password hash, and UTC audit timestamps.
+  - [x] Add the repository query for normalized email.
+  - [x] Enforce `users_email_uq` at the database level.
+  - [x] Map database uniqueness violations to `USER_ALREADY_EXISTS`.
 
-- [ ] **Implement email and password policies**
-  - Normalize email by trimming and lowercasing with `Locale.ROOT`.
-  - Validate email length and syntax.
-  - Enforce the 12–128 Unicode code-point password policy.
-  - Do not trim, normalize, persist, or log raw passwords.
-  - Add unit tests for boundary and invalid values.
+- [x] **Implement email and password policies**
+  - [x] Normalize email by trimming and lowercasing with `Locale.ROOT`.
+  - [x] Validate email length and syntax.
+  - [x] Enforce the 12–128 Unicode code-point password policy.
+  - [x] Do not trim, normalize, persist, or log raw passwords.
+  - [x] Add unit tests for boundary and invalid values.
 
-- [ ] **Implement password hashing**
-  - Configure Argon2id through Spring Security's password encoder.
-  - Hash passwords before persistence.
-  - Verify passwords without revealing whether the user exists.
-  - Add tests proving hashes are not reversible and invalid passwords fail.
+- [x] **Implement password hashing**
+  - [x] Configure Argon2id through Spring Security's password encoder.
+  - [x] Hash passwords before persistence.
+  - [x] Verify passwords without revealing whether the user exists.
+  - [x] Add tests proving hashes are not reversible and invalid passwords fail.
 
 ## Phase 3 — Session and token infrastructure
 

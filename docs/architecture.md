@@ -58,6 +58,8 @@ users
 
 Email is normalized before the insert. The unique database index remains the final authority for concurrent registration attempts.
 
+The `User` JPA entity owns email normalization, application-side UUID generation, and UTC audit timestamp lifecycle callbacks. `UserRepository` exposes normalized-email lookup and translates only the `users_email_uq` constraint violation into `DuplicateUserException`; all other database integrity failures remain errors.
+
 ## Session persistence
 
 Redis stores:

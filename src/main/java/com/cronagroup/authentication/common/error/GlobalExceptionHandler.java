@@ -1,5 +1,6 @@
 package com.cronagroup.authentication.common.error;
 
+import com.cronagroup.authentication.common.web.RequestIdFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
