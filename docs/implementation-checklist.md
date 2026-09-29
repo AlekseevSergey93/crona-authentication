@@ -4,26 +4,26 @@ This checklist decomposes the specification and current architecture into indepe
 
 ## Phase 1 — Project foundation
 
-- [ ] **Create the Spring Boot application structure**
-  - Configure Spring Boot 3.x for Java 21.
-  - Add starters for Web, Validation, Security, JPA, and Redis.
-  - Add the PostgreSQL JDBC driver and test dependencies.
-  - Keep Liquibase as the only database migration tool.
-  - Add Maven test, compiler, and packaging configuration.
-  - Verify the project starts with an empty application context.
+- [x] **Create the Spring Boot application structure**
+  - [x] Configure Spring Boot 3.x for Java 21.
+  - [x] Add starters for Web, Validation, Security, JPA, and Redis.
+  - [x] Add the PostgreSQL JDBC driver and test dependencies.
+  - [x] Keep Liquibase as the only database migration tool.
+  - [x] Add Maven test, compiler, and packaging configuration.
+  - [x] Verify the project starts with an empty application context.
 
-- [ ] **Define application configuration**
-  - Add typed configuration for PostgreSQL, Redis, JWT, session TTL, access-token TTL, issuer, and password policy.
-  - Bind values from environment variables with safe local defaults where appropriate.
-  - Fail startup when required production secrets are missing or malformed.
-  - Provide `.env.example` without usable credentials or private keys.
+- [x] **Define application configuration**
+  - [x] Add typed configuration for PostgreSQL, Redis, JWT, session TTL, access-token TTL, issuer, and password policy.
+  - [x] Bind values from environment variables with safe local defaults where appropriate.
+  - [x] Fail startup when required production secrets are missing or malformed.
+  - [x] Provide `.env.example` without usable credentials or private keys.
 
-- [ ] **Add the common web foundation**
-  - Implement request ID generation/propagation.
-  - Configure JSON serialization and UTC timestamps.
-  - Add the common error response containing `timestamp`, `status`, `code`, `message`, and `requestId`.
-  - Add exception handlers for validation, authentication, duplicate users, dependency failures, and unexpected errors.
-  - Ensure stack traces and secrets are never returned to clients.
+- [x] **Add the common web foundation**
+  - [x] Implement request ID generation/propagation.
+  - [x] Configure JSON serialization and UTC timestamps.
+  - [x] Add the common error response containing `timestamp`, `status`, `code`, `message`, and `requestId`.
+  - [x] Add exception handlers for validation, authentication, duplicate users, dependency failures, and unexpected errors.
+  - [x] Ensure stack traces and secrets are never returned to clients.
 
 ## Phase 2 — Database and domain model
 

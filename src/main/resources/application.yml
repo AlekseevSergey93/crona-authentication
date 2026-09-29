@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: crona-authentication
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+  datasource:
+    url: ${DATABASE_URL:${app.database.url}}
+    username: ${DATABASE_USERNAME:${app.database.username}}
+    password: ${DATABASE_PASSWORD:${app.database.password}}
+  data:
+    redis:
+      host: ${REDIS_HOST:${app.redis.host}}
+      port: ${REDIS_PORT:${app.redis.port}}
+      password: ${REDIS_PASSWORD:${app.redis.password:}}
+  liquibase:
+    enabled: ${LIQUIBASE_ENABLED:true}
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+
+app:
+  database:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/auth}
+    username: ${DATABASE_USERNAME:auth}
+    password: ${DATABASE_PASSWORD:auth}
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+  jwt:
+    issuer: ${JWT_ISSUER:crona-authentication}
+    private-key-path: ${JWT_PRIVATE_KEY_PATH:}
+    public-key-path: ${JWT_PUBLIC_KEY_PATH:}
+    access-token-ttl: ${ACCESS_TOKEN_TTL:PT15M}
+    session-ttl: ${SESSION_TTL:PT24H}
+  password:
+    min-length: ${PASSWORD_MIN_LENGTH:12}
+    max-length: ${PASSWORD_MAX_LENGTH:128}
