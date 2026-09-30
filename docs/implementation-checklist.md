@@ -155,12 +155,12 @@ This checklist decomposes the specification and current architecture into indepe
 
 ## Phase 6 — Automated verification
 
-- [ ] **Add unit test coverage**
+- [x] **Add unit test coverage**
   - Cover normalization, validation, hashing, token generation, JWT claims, error mapping, and secret redaction.
   - Include boundary tests for password length and token/session lifetimes.
   - Keep unit tests independent of Docker and external services.
 
-- [ ] **Add Testcontainers integration coverage**
+- [x] **Add Testcontainers integration coverage**
   - Start actual PostgreSQL and Redis containers.
   - Apply Liquibase changesets against the PostgreSQL container.
   - Test registration, login, duplicate registration, invalid credentials, `/api/me`, and dependency errors.
@@ -168,7 +168,7 @@ This checklist decomposes the specification and current architecture into indepe
   - Test refresh rotation, TTL behavior, logout, and independent sessions.
   - Test concurrent refresh with exactly one successful response.
 
-- [ ] **Create the runnable curl demo**
+- [x] **Create the runnable curl demo**
   - Add executable `scripts/demo-auth.sh`.
   - Use `curl` and `jq`, or document a portable alternative.
   - Start the stack with shortened lifetimes:
@@ -188,9 +188,9 @@ This checklist decomposes the specification and current architecture into indepe
 
 ## Final release gate
 
-- [ ] All tests pass with no skipped authentication-critical cases.
-- [ ] Liquibase starts cleanly on an empty PostgreSQL instance and does not reapply completed changesets.
-- [ ] `docker compose up --build` starts all four services with only Nginx exposed.
-- [ ] The curl demo passes against the Compose stack.
-- [ ] No password, JWT, raw session token, or token hash appears in source-controlled configuration, responses, or logs.
-- [ ] Documentation under `docs/` is complete and written in English.
+- [x] All tests pass with no skipped authentication-critical cases.
+- [x] Liquibase starts cleanly on an empty PostgreSQL instance and does not reapply completed changesets.
+- [x] `docker compose up --build` starts all four services with only Nginx exposed.
+- [x] The curl demo passes against the Compose stack.
+- [x] No password, JWT, raw session token, or token hash appears in source-controlled configuration, responses, or logs.
+- [x] Documentation under `docs/` is complete and written in English.

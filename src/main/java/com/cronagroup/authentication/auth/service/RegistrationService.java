@@ -11,7 +11,7 @@ import com.cronagroup.authentication.common.security.SessionTokenService;
 import com.cronagroup.authentication.common.validation.EmailPolicy;
 import com.cronagroup.authentication.user.domain.User;
 import com.cronagroup.authentication.user.repository.UserRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,28 +19,27 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 
 @Service
-@ConditionalOnBean({UserRepository.class, RedisSessionRepository.class})
 public class RegistrationService {
 
-    private final UserRepository userRepository;
+    private final ObjectProvider<UserRepository> userRepositoryProvider;
     private final PasswordHashingService passwordHashingService;
     private final SessionTokenService sessionTokenService;
-    private final RedisSessionRepository sessionRepository;
+    private final ObjectProvider<RedisSessionRepository> sessionRepositoryProvider;
     private final JwtTokenService jwtTokenService;
     private final Duration accessTokenTtl;
 
     public RegistrationService(
-            UserRepository userRepository,
+            ObjectProvider<UserRepository> userRepositoryProvider,
             PasswordHashingService passwordHashingService,
             SessionTokenService sessionTokenService,
-            RedisSessionRepository sessionRepository,
+            ObjectProvider<RedisSessionRepository> sessionRepositoryProvider,
             JwtTokenService jwtTokenService,
             com.cronagroup.authentication.config.ApplicationProperties properties
     ) {
-        this.userRepository = userRepository;
+        this.userRepositoryProvider = userRepositoryProvider;
         this.passwordHashingService = passwordHashingService;
         this.sessionTokenService = sessionTokenService;
-        this.sessionRepository = sessionRepository;
+        this.sessionRepositoryProvider = sessionRepositoryProvider;
         this.jwtTokenService = jwtTokenService;
         this.accessTokenTtl = properties.getJwt().getAccessTokenTtl();
         if (accessTokenTtl.isZero() || accessTokenTtl.isNegative()) {
@@ -57,6 +56,10 @@ public class RegistrationService {
         User user = User.create(normalizedEmail, passwordHash);
 
         try {
+            UserRepository userRepository = userRepositoryProvider.getIfAvailable();
+            if (userRepository == null) {
+                throw new DependencyUnavailableException("User persistence is unavailable");
+            }
             userRepository.saveNew(user);
         } catch (DataAccessException exception) {
             throw new DependencyUnavailableException("User persistence is unavailable");
@@ -64,6 +67,10 @@ public class RegistrationService {
 
         SessionTokenService.SessionToken sessionToken = sessionTokenService.generate();
         try {
+            RedisSessionRepository sessionRepository = sessionRepositoryProvider.getIfAvailable();
+            if (sessionRepository == null) {
+                throw new DependencyUnavailableException("Session persistence is unavailable");
+            }
             sessionRepository.create(user.getId(), sessionToken);
         } catch (DataAccessException exception) {
             throw new DependencyUnavailableException("Session persistence is unavailable");

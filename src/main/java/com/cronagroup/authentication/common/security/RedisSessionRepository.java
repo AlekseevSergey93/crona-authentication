@@ -1,7 +1,8 @@
 package com.cronagroup.authentication.common.security;
 
 import com.cronagroup.authentication.config.ApplicationProperties;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-@ConditionalOnBean(StringRedisTemplate.class)
 public class RedisSessionRepository {
 
     private static final String KEY_PREFIX = "auth:session:";
@@ -37,16 +37,16 @@ public class RedisSessionRepository {
             return userId
             """, String.class);
 
-    private final StringRedisTemplate redisTemplate;
+    private final ObjectProvider<StringRedisTemplate> redisTemplateProvider;
     private final SessionTokenService sessionTokenService;
     private final Duration sessionTtl;
 
     public RedisSessionRepository(
-            StringRedisTemplate redisTemplate,
+            ObjectProvider<StringRedisTemplate> redisTemplateProvider,
             SessionTokenService sessionTokenService,
             ApplicationProperties properties
     ) {
-        this.redisTemplate = redisTemplate;
+        this.redisTemplateProvider = redisTemplateProvider;
         this.sessionTokenService = sessionTokenService;
         this.sessionTtl = properties.getJwt().getSessionTtl();
         if (sessionTtl.isZero() || sessionTtl.isNegative() || sessionTtl.toMillis() <= 0) {
@@ -55,6 +55,7 @@ public class RedisSessionRepository {
     }
 
     public void create(UUID userId, SessionTokenService.SessionToken token) {
+        StringRedisTemplate redisTemplate = redisTemplate();
         String key = key(token.sessionId());
         redisTemplate.opsForHash().putAll(key, Map.of(
                 USER_ID_FIELD, userId.toString(),
@@ -80,6 +81,7 @@ public class RedisSessionRepository {
     }
 
     public Optional<SessionRecord> find(UUID sessionId) {
+        StringRedisTemplate redisTemplate = redisTemplate();
         String key = key(sessionId);
         Map<Object, Object> values = redisTemplate.opsForHash().entries(key);
         if (values.isEmpty()) {
@@ -101,7 +103,10 @@ public class RedisSessionRepository {
 
     public boolean deleteByToken(String token) {
         Optional<UUID> sessionId = sessionTokenService.extractSessionId(token);
-        return sessionId.isPresent() && Boolean.TRUE.equals(redisTemplate.delete(key(sessionId.get())));
+        if (sessionId.isEmpty()) {
+            return false;
+        }
+        return Boolean.TRUE.equals(redisTemplate().delete(key(sessionId.get())));
     }
 
     public Optional<RotatedSession> rotate(String currentToken) {
@@ -110,6 +115,7 @@ public class RedisSessionRepository {
             return Optional.empty();
         }
 
+        StringRedisTemplate redisTemplate = redisTemplate();
         SessionTokenService.SessionToken replacement = sessionTokenService.generate(sessionId.get());
         String rotatedUserId = redisTemplate.execute(
                 ROTATE_SCRIPT,
@@ -138,6 +144,14 @@ public class RedisSessionRepository {
 
     private static String key(UUID sessionId) {
         return KEY_PREFIX + sessionId;
+    }
+
+    private StringRedisTemplate redisTemplate() {
+        StringRedisTemplate redisTemplate = redisTemplateProvider.getIfAvailable();
+        if (redisTemplate == null) {
+            throw new RedisConnectionFailureException("Redis session persistence is unavailable");
+        }
+        return redisTemplate;
     }
 
     private static UUID parseUuid(Map<Object, Object> values, String field) {

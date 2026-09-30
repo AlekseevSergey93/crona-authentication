@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.time.Duration;
 import java.util.Map;
@@ -21,6 +22,7 @@ class RedisSessionRepositoryTest {
     private static final UUID USER_ID = UUID.randomUUID();
 
     private StringRedisTemplate redisTemplate;
+    private ObjectProvider<StringRedisTemplate> redisTemplateProvider;
     private HashOperations<String, Object, Object> hashOperations;
     private SessionTokenService tokenService;
     private RedisSessionRepository repository;
@@ -28,13 +30,15 @@ class RedisSessionRepositoryTest {
     @BeforeEach
     void setUp() {
         redisTemplate = mock(StringRedisTemplate.class);
+        redisTemplateProvider = mock(ObjectProvider.class);
+        when(redisTemplateProvider.getIfAvailable()).thenReturn(redisTemplate);
         hashOperations = mock(HashOperations.class);
         tokenService = new SessionTokenService();
         ApplicationProperties properties = new ApplicationProperties();
         properties.getJwt().setSessionTtl(Duration.ofHours(24));
 
         when(redisTemplate.opsForHash()).thenReturn(hashOperations);
-        repository = new RedisSessionRepository(redisTemplate, tokenService, properties);
+        repository = new RedisSessionRepository(redisTemplateProvider, tokenService, properties);
     }
 
     @Test

@@ -13,6 +13,7 @@ import com.cronagroup.authentication.user.domain.User;
 import com.cronagroup.authentication.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 
 import java.time.Duration;
@@ -30,6 +31,8 @@ class LoginServiceTest {
     private PasswordHashingService passwordHashingService;
     private SessionTokenService sessionTokenService;
     private RedisSessionRepository sessionRepository;
+    private ObjectProvider<UserRepository> userRepositoryProvider;
+    private ObjectProvider<RedisSessionRepository> sessionRepositoryProvider;
     private JwtTokenService jwtTokenService;
     private LoginService service;
 
@@ -39,15 +42,19 @@ class LoginServiceTest {
         passwordHashingService = mock(PasswordHashingService.class);
         sessionTokenService = mock(SessionTokenService.class);
         sessionRepository = mock(RedisSessionRepository.class);
+        userRepositoryProvider = mock(ObjectProvider.class);
+        sessionRepositoryProvider = mock(ObjectProvider.class);
+        when(userRepositoryProvider.getIfAvailable()).thenReturn(userRepository);
+        when(sessionRepositoryProvider.getIfAvailable()).thenReturn(sessionRepository);
         jwtTokenService = mock(JwtTokenService.class);
 
         ApplicationProperties properties = new ApplicationProperties();
         properties.getJwt().setAccessTokenTtl(Duration.ofMinutes(15));
         service = new LoginService(
-                userRepository,
+                userRepositoryProvider,
                 passwordHashingService,
                 sessionTokenService,
-                sessionRepository,
+                sessionRepositoryProvider,
                 jwtTokenService,
                 properties
         );
