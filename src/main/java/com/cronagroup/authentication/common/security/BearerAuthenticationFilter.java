@@ -20,6 +20,9 @@ import java.util.Optional;
 @Component
 public class BearerAuthenticationFilter extends OncePerRequestFilter {
 
+    public static final String USER_ID_ATTRIBUTE = BearerAuthenticationFilter.class.getName() + ".userId";
+    public static final String SESSION_ID_ATTRIBUTE = BearerAuthenticationFilter.class.getName() + ".sessionId";
+
     private final JwtTokenService jwtTokenService;
     private final ObjectProvider<RedisSessionRepository> sessionRepositoryProvider;
     private final SecurityErrorWriter errorWriter;
@@ -83,6 +86,8 @@ public class BearerAuthenticationFilter extends OncePerRequestFilter {
             }
 
             AuthenticatedUser authenticatedUser = new AuthenticatedUser(claims.userId(), claims.sessionId());
+            request.setAttribute(USER_ID_ATTRIBUTE, claims.userId().toString());
+            request.setAttribute(SESSION_ID_ATTRIBUTE, claims.sessionId().toString());
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken(
                             authenticatedUser,

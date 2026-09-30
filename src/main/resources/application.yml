@@ -7,11 +7,15 @@ spring:
     url: ${DATABASE_URL:${app.database.url}}
     username: ${DATABASE_USERNAME:${app.database.username}}
     password: ${DATABASE_PASSWORD:${app.database.password}}
+    hikari:
+      connection-timeout: ${DATABASE_CONNECTION_TIMEOUT_MS:5000}
   data:
     redis:
       host: ${REDIS_HOST:${app.redis.host}}
       port: ${REDIS_PORT:${app.redis.port}}
       password: ${REDIS_PASSWORD:${app.redis.password:}}
+      timeout: ${REDIS_COMMAND_TIMEOUT:5s}
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT:5s}
   liquibase:
     enabled: ${LIQUIBASE_ENABLED:true}
     change-log: classpath:db/changelog/db.changelog-master.yaml
@@ -20,6 +24,17 @@ server:
   port: ${SERVER_PORT:8080}
   error:
     include-message: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
 
 app:
   database:

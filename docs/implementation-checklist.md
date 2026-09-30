@@ -126,32 +126,32 @@ This checklist decomposes the specification and current architecture into indepe
 
 ## Phase 5 — Infrastructure and delivery
 
-- [ ] **Create the application Docker image**
-  - Use a multi-stage Dockerfile with a Maven builder and minimal JRE runtime.
-  - Run the application as a non-root user.
-  - Supply keys and credentials through environment variables or mounted secrets.
-  - Do not include development secrets in the image.
+- [x] **Create the application Docker image**
+  - [x] Use a multi-stage Dockerfile with a Maven builder and minimal JRE runtime.
+  - [x] Run the application as a non-root user.
+  - [x] Supply keys and credentials through environment variables or mounted secrets.
+  - [x] Do not include development secrets in the image.
 
-- [ ] **Create the Docker Compose stack**
-  - Add exactly `app`, `postgres`, `redis`, and `nginx` runtime services.
-  - Expose a host port only from Nginx.
-  - Add PostgreSQL persistence with a named volume.
-  - Add PostgreSQL, Redis, and application healthchecks.
-  - Use healthy dependency conditions before starting the application.
-  - Verify `docker compose up --build` works after `.env` setup.
+- [x] **Create the Docker Compose stack**
+  - [x] Add exactly `app`, `postgres`, `redis`, and `nginx` runtime services.
+  - [x] Expose a host port only from Nginx.
+  - [x] Add PostgreSQL persistence with a named volume.
+  - [x] Add PostgreSQL, Redis, and application healthchecks.
+  - [x] Use healthy dependency conditions before starting the application.
+  - [x] Verify `docker compose up --build` works after `.env` setup.
 
-- [ ] **Configure Nginx**
-  - Proxy `/api/` to the internal application port.
-  - Forward `Authorization`, `Content-Type`, and `X-Request-Id`.
-  - Generate or preserve a request ID.
-  - Avoid exposing application, actuator, PostgreSQL, or Redis ports publicly.
-  - Verify that API error responses remain valid JSON.
+- [x] **Configure Nginx**
+  - [x] Proxy `/api/` to the internal application port.
+  - [x] Forward `Authorization`, `Content-Type`, and `X-Request-Id`.
+  - [x] Generate or preserve a request ID.
+  - [x] Avoid exposing application, actuator, PostgreSQL, or Redis ports publicly.
+  - [x] Verify that API error responses remain valid JSON.
 
-- [ ] **Add safe operational logging**
-  - Log operation, request ID, outcome, and safe user/session identifiers.
-  - Redact passwords, JWTs, session tokens, token hashes, and authorization headers.
-  - Add controlled dependency timeout handling for PostgreSQL and Redis.
-  - Confirm Redis failure always fails closed.
+- [x] **Add safe operational logging**
+  - [x] Log operation, request ID, outcome, and safe user/session identifiers.
+  - [x] Redact passwords, JWTs, session tokens, token hashes, and authorization headers.
+  - [x] Add controlled dependency timeout handling for PostgreSQL and Redis.
+  - [x] Confirm Redis failure always fails closed.
 
 ## Phase 6 — Automated verification
 
