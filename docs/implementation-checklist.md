@@ -86,43 +86,43 @@ This checklist decomposes the specification and current architecture into indepe
 
 ## Phase 4 — Authentication use cases and HTTP API
 
-- [ ] **Implement registration**
-  - Validate and normalize the request.
-  - Persist the user with an Argon2id password hash.
-  - Create a Redis session and issue the access token only after required persistence succeeds.
-  - Return `201 Created` with `accessToken`, `sessionToken`, `tokenType`, and `expiresIn`.
-  - Map duplicate email to `409 USER_ALREADY_EXISTS`.
-  - Ensure Redis failure cannot produce an authentication success.
+- [x] **Implement registration**
+  - [x] Validate and normalize the request.
+  - [x] Persist the user with an Argon2id password hash.
+  - [x] Create a Redis session and issue the access token only after required persistence succeeds.
+  - [x] Return `201 Created` with `accessToken`, `sessionToken`, `tokenType`, and `expiresIn`.
+  - [x] Map duplicate email to `409 USER_ALREADY_EXISTS`.
+  - [x] Ensure Redis failure cannot produce an authentication success.
 
-- [ ] **Implement login**
-  - Normalize the email and load the user.
-  - Verify the password using the configured encoder.
-  - Return the same `401 INVALID_CREDENTIALS` response for an unknown user and a wrong password.
-  - Create a new independent Redis session for every successful login.
-  - Return `200 OK` with the token response.
+- [x] **Implement login**
+  - [x] Normalize the email and load the user.
+  - [x] Verify the password using the configured encoder.
+  - [x] Return the same `401 INVALID_CREDENTIALS` response for an unknown user and a wrong password.
+  - [x] Create a new independent Redis session for every successful login.
+  - [x] Return `200 OK` with the token response.
 
-- [ ] **Implement refresh**
-  - Accept only `sessionToken` in the JSON body.
-  - Do not use `Authorization`, JWT claims, or a standalone session ID for authorization.
-  - Execute the atomic rotation operation.
-  - Return a new access token and a different session token on success.
-  - Return `401 INVALID_SESSION` for all invalid, missing, expired, deleted, or replaced tokens.
-  - Confirm that failed refresh does not alter the token or TTL.
+- [x] **Implement refresh**
+  - [x] Accept only `sessionToken` in the JSON body.
+  - [x] Do not use `Authorization`, JWT claims, or a standalone session ID for authorization.
+  - [x] Execute the atomic rotation operation.
+  - [x] Return a new access token and a different session token on success.
+  - [x] Return `401 INVALID_SESSION` for all invalid, missing, expired, deleted, or replaced tokens.
+  - [x] Confirm that failed refresh does not alter the token or TTL.
 
-- [ ] **Implement logout**
-  - Accept only `sessionToken` in the JSON body.
-  - Delete the identified Redis session.
-  - Return `204 No Content`.
-  - Make missing/expired-session logout idempotent.
-  - Map Redis unavailability to `503 DEPENDENCY_UNAVAILABLE`.
+- [x] **Implement logout**
+  - [x] Accept only `sessionToken` in the JSON body.
+  - [x] Delete the identified Redis session.
+  - [x] Return `204 No Content`.
+  - [x] Make missing/expired-session logout idempotent.
+  - [x] Map Redis unavailability to `503 DEPENDENCY_UNAVAILABLE`.
 
-- [ ] **Implement protected access and `GET /api/me`**
-  - Add a Bearer-token security filter or resource-server integration.
-  - Validate JWT claims and then perform the Redis active-session check.
-  - Verify Redis `userId` matches JWT `sub`.
-  - Load the current user and return only `id` and `email`.
-  - Ensure ordinary requests do not extend the session TTL.
-  - Return `401 UNAUTHORIZED` for missing, malformed, tampered, expired, revoked, or mismatched authentication.
+- [x] **Implement protected access and `GET /api/me`**
+  - [x] Add a Bearer-token security filter or resource-server integration.
+  - [x] Validate JWT claims and then perform the Redis active-session check.
+  - [x] Verify Redis `userId` matches JWT `sub`.
+  - [x] Load the current user and return only `id` and `email`.
+  - [x] Ensure ordinary requests do not extend the session TTL.
+  - [x] Return `401 UNAUTHORIZED` for missing, malformed, tampered, expired, revoked, or mismatched authentication.
 
 ## Phase 5 — Infrastructure and delivery
 

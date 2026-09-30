@@ -11,6 +11,7 @@ public class PasswordHashingService {
 
     private final PasswordEncoder passwordEncoder;
     private final PasswordPolicy passwordPolicy;
+    private final String dummyPasswordHash;
 
     public PasswordHashingService(
             PasswordEncoder passwordEncoder,
@@ -18,6 +19,7 @@ public class PasswordHashingService {
     ) {
         this.passwordEncoder = passwordEncoder;
         this.passwordPolicy = passwordPolicy;
+        this.dummyPasswordHash = passwordEncoder.encode("authentication-dummy-password");
     }
 
     public String hash(String rawPassword) {
@@ -29,5 +31,13 @@ public class PasswordHashingService {
         Objects.requireNonNull(rawPassword, "rawPassword must not be null");
         Objects.requireNonNull(passwordHash, "passwordHash must not be null");
         return passwordEncoder.matches(rawPassword, passwordHash);
+    }
+
+    public boolean matchesOrDummy(String rawPassword, String passwordHash) {
+        Objects.requireNonNull(rawPassword, "rawPassword must not be null");
+        return passwordEncoder.matches(
+                rawPassword,
+                passwordHash == null ? dummyPasswordHash : passwordHash
+        );
     }
 }
