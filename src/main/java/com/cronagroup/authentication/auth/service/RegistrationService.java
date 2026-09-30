@@ -72,7 +72,8 @@ public class RegistrationService {
                 throw new DependencyUnavailableException("Session persistence is unavailable");
             }
             sessionRepository.create(user.getId(), sessionToken);
-        } catch (DataAccessException exception) {
+        } catch (DataAccessException | DependencyUnavailableException exception) {
+            compensateUserCreation(userRepositoryProvider.getIfAvailable(), user);
             throw new DependencyUnavailableException("Session persistence is unavailable");
         }
 
@@ -83,6 +84,17 @@ public class RegistrationService {
                 "Bearer",
                 accessTokenTtl.toSeconds()
         );
+    }
+
+    private static void compensateUserCreation(UserRepository userRepository, User user) {
+        if (userRepository == null) {
+            throw new DependencyUnavailableException("User persistence is unavailable");
+        }
+        try {
+            userRepository.deleteById(user.getId());
+        } catch (DataAccessException exception) {
+            throw new DependencyUnavailableException("User persistence is unavailable");
+        }
     }
 
     private static String normalizeEmail(String email) {

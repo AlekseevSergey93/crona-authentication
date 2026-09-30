@@ -21,7 +21,17 @@ public class RedisSessionRepository {
     private static final String KEY_PREFIX = "auth:session:";
     private static final String USER_ID_FIELD = "userId";
     private static final String TOKEN_DIGEST_FIELD = "sessionTokenHash";
+    private static final RedisScript<String> CREATE_SCRIPT = RedisScript.of("""
+            redis.call('HSET', KEYS[1], ARGV[1], ARGV[2], ARGV[3], ARGV[4])
+            redis.call('PEXPIRE', KEYS[1], ARGV[5])
+            return '1'
+            """, String.class);
     private static final RedisScript<String> ROTATE_SCRIPT = RedisScript.of("""
+            local ttl = redis.call('PTTL', KEYS[1])
+            if ttl <= 0 then
+                return ''
+            end
+
             local currentDigest = redis.call('HGET', KEYS[1], ARGV[1])
             if not currentDigest or currentDigest ~= ARGV[2] then
                 return ''
@@ -57,11 +67,18 @@ public class RedisSessionRepository {
     public void create(UUID userId, SessionTokenService.SessionToken token) {
         StringRedisTemplate redisTemplate = redisTemplate();
         String key = key(token.sessionId());
-        redisTemplate.opsForHash().putAll(key, Map.of(
-                USER_ID_FIELD, userId.toString(),
-                TOKEN_DIGEST_FIELD, sessionTokenService.digest(token.value())
-        ));
-        redisTemplate.expire(key, sessionTtl);
+        String created = redisTemplate.execute(
+                CREATE_SCRIPT,
+                List.of(key),
+                USER_ID_FIELD,
+                userId.toString(),
+                TOKEN_DIGEST_FIELD,
+                sessionTokenService.digest(token.value()),
+                String.valueOf(sessionTtl.toMillis())
+        );
+        if (!"1".equals(created)) {
+            throw new IllegalStateException("Unable to create Redis session");
+        }
     }
 
     public Optional<SessionRecord> findByToken(String token) {

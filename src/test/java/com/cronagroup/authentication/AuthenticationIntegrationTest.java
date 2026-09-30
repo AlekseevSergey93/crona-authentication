@@ -126,6 +126,15 @@ class AuthenticationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString(email)));
 
+        String login = mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content(request(email, PASSWORD)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        mockMvc.perform(get("/api/me")
+                        .header("Authorization", "Bearer " + json(login, "$.accessToken")))
+                .andExpect(status().isOk());
+
         assertThat(sessionTokenService.extractSessionId(sessionToken)).isPresent();
     }
 
@@ -150,8 +159,8 @@ class AuthenticationIntegrationTest {
         String newSessionToken = json(refreshed, "$.sessionToken");
         assertThat(newSessionToken).isNotEqualTo(oldSessionToken);
         assertThat(sessionTokenService.extractSessionId(newSessionToken)).contains(sessionId);
-        assertThat(redisTemplate.getExpire(key)).isGreaterThan(0).isLessThanOrEqualTo(SESSION_TTL.toSeconds());
-        assertThat(redisTemplate.getExpire(key)).isGreaterThanOrEqualTo(beforeRefresh - 1);
+        assertThat(redisTemplate.getExpire(key)).isGreaterThanOrEqualTo(SESSION_TTL.toSeconds() - 1);
+        assertThat(redisTemplate.getExpire(key)).isLessThanOrEqualTo(SESSION_TTL.toSeconds());
 
         mockMvc.perform(post("/api/auth/refresh")
                         .contentType("application/json")
@@ -208,6 +217,65 @@ class AuthenticationIntegrationTest {
         mockMvc.perform(post("/api/auth/refresh")
                         .contentType("application/json")
                         .content("{\"sessionToken\":\"" + sessionToken + "\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @Order(5)
+    void rejectsInvalidRefreshCredentialsAndKeepsOtherSessionsActive() throws Exception {
+        String email = uniqueEmail();
+        String firstLogin = register(email);
+        String firstAccessToken = json(firstLogin, "$.accessToken");
+        String firstSessionToken = json(firstLogin, "$.sessionToken");
+        String secondLogin = mockMvc.perform(post("/api/auth/login")
+                        .contentType("application/json")
+                        .content(request(email, PASSWORD)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String secondAccessToken = json(secondLogin, "$.accessToken");
+        String secondSessionToken = json(secondLogin, "$.sessionToken");
+
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType("application/json")
+                        .content("{}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType("application/json")
+                        .content("{\"sessionToken\":\"malformed\"}"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType("application/json")
+                        .content("{\"sessionToken\":\""
+                                + sessionTokenService.extractSessionId(firstSessionToken).orElseThrow()
+                                + "\"}"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/auth/logout")
+                        .contentType("application/json")
+                        .content("{\"sessionToken\":\"" + firstSessionToken + "\"}"))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/me").header("Authorization", "Bearer " + firstAccessToken))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/me").header("Authorization", "Bearer " + secondAccessToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType("application/json")
+                        .content("{\"sessionToken\":\"" + secondSessionToken + "\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @Order(5)
+    void rejectsTamperedJwt() throws Exception {
+        String registration = register(uniqueEmail());
+        String accessToken = json(registration, "$.accessToken");
+        String[] tokenParts = accessToken.split("\\.");
+        char[] signature = tokenParts[2].toCharArray();
+        signature[5] = signature[5] == 'A' ? 'B' : 'A';
+        tokenParts[2] = new String(signature);
+        String tampered = String.join(".", tokenParts);
+
+        mockMvc.perform(get("/api/me").header("Authorization", "Bearer " + tampered))
                 .andExpect(status().isUnauthorized());
     }
 

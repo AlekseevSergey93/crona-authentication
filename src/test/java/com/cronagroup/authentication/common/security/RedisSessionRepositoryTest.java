@@ -42,19 +42,27 @@ class RedisSessionRepositoryTest {
     }
 
     @Test
-    void createsHashWithOnlyUserIdAndTokenDigestAndSetsSessionTtl() {
+    void createsHashAndTtlAtomically() {
         SessionTokenService.SessionToken token = tokenService.generate();
+        doReturn("1").when(redisTemplate).execute(
+                any(),
+                eq(java.util.List.of("auth:session:" + token.sessionId())),
+                any(Object[].class)
+        );
 
         repository.create(USER_ID, token);
 
-        verify(hashOperations).putAll(
-                eq("auth:session:" + token.sessionId()),
-                eq(Map.of(
-                        "userId", USER_ID.toString(),
-                        "sessionTokenHash", tokenService.digest(token.value())
-                ))
+        verify(redisTemplate).execute(
+                any(),
+                eq(java.util.List.of("auth:session:" + token.sessionId())),
+                eq("userId"),
+                eq(USER_ID.toString()),
+                eq("sessionTokenHash"),
+                eq(tokenService.digest(token.value())),
+                eq(String.valueOf(Duration.ofHours(24).toMillis()))
         );
-        verify(redisTemplate).expire("auth:session:" + token.sessionId(), Duration.ofHours(24));
+        verify(hashOperations, never()).putAll(anyString(), anyMap());
+        verify(redisTemplate, never()).expire(anyString(), any(Duration.class));
     }
 
     @Test
@@ -160,6 +168,18 @@ class RedisSessionRepositoryTest {
                 anyList(),
                 any(Object[].class)
         );
+    }
+
+    @Test
+    void rejectsSessionWithoutPositiveTtlInAtomicRotation() {
+        SessionTokenService.SessionToken currentToken = tokenService.generate();
+        doReturn("").when(redisTemplate).execute(
+                any(),
+                eq(java.util.List.of("auth:session:" + currentToken.sessionId())),
+                any(Object[].class)
+        );
+
+        assertThat(repository.rotate(currentToken.value())).isEmpty();
     }
 
     private static String tamperSecretPart(String token) {

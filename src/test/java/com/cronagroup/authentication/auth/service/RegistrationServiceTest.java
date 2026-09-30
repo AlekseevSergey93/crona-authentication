@@ -84,6 +84,7 @@ class RegistrationServiceTest {
         assertThat(response).isEqualTo(new TokenResponse("access-token", "session-token", "Bearer", 900));
         verify(sessionRepository).create(any(UUID.class), same(sessionToken));
         verify(jwtTokenService).issue(any(UUID.class), eq(sessionId));
+        verify(userRepository, never()).deleteById(any(UUID.class));
     }
 
     @Test
@@ -126,5 +127,6 @@ class RegistrationServiceTest {
         )).isInstanceOf(DependencyUnavailableException.class);
 
         verifyNoInteractions(jwtTokenService);
+        verify(userRepository).deleteById(any(UUID.class));
     }
 }

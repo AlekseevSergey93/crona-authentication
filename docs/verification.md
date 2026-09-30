@@ -17,7 +17,8 @@ The runnable Compose demonstration requires Docker, `curl`, `jq`, and Python 3. 
 ```bash
 cp .env.example .env
 ACCESS_TOKEN_TTL=5s SESSION_TTL=20s docker compose up --build -d
-./scripts/demo-auth.sh http://localhost:8088
+EXPECTED_SESSION_TTL_SECONDS=20 ACCESS_TOKEN_WAIT_SECONDS=6 \
+  ./scripts/demo-auth.sh http://localhost:8088
 ```
 
 The script stores responses only in a private temporary directory, does not print credentials or tokens, performs no implicit cleanup of Compose resources, and exits on the first failed assertion. Stop the manually started stack explicitly when finished:
